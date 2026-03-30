@@ -14,7 +14,7 @@ jobs:
           curl -X PATCH \
           -H "Content-Type: application/json-patch+json" \
           -u ":${{ secrets.AZDO_PAT }}" \
-          https://dev.azure.com/YOUR_ORG/YOUR_PROJECT/_apis/wit/workitems/${{ github.event.client_payload.workItemId }}?api-version=7.0 \
+          https://dev.azure.com/abatacommerce/MyKKP/_apis/wit/workitems/${{ github.event.client_payload.workItemId }}?api-version=7.0 \
           -d '[
             {
               "op": "add",
