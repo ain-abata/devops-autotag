@@ -10,11 +10,47 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Add Bugs tag and set State to "To Fix"
+      - name: Get work item details
+        id: get_bug
         run: |
-          curl --request PATCH \
-               --header "Content-Type: application/json-patch+json" \
-               --user ":${{ secrets.AZDO_PAT }}" \
-               --data '[{"op":"add","path":"/fields/System.Tags","value":"Bugs"},
-                        {"op":"add","path":"/fields/System.State","value":"To Fix"}]' \
-               https://dev.azure.com/abatacommerce/MyKKP/_apis/wit/workitems/${{ github.event.client_payload.workItemId }}?api-version=7.0
+          RESPONSE=$(curl \
+            --silent \
+            --user ":${{ secrets.AZDO_PAT }}" \
+            "https://dev.azure.com/abatacommerce/MyKKP/_apis/wit/workitems/${{ github.event.client_payload.workItemId }}?api-version=7.0")
+
+          echo "$RESPONSE" > bug.json
+
+      - name: Extract current tag + state
+        id: extract_fields
+        run: |
+          TAGS=$(jq -r '.fields["System.Tags"] // ""' bug.json)
+          STATE=$(jq -r '.fields["System.State"]' bug.json)
+
+          echo "TAGS=$TAGS" >> $GITHUB_ENV
+          echo "STATE=$STATE" >> $GITHUB_ENV
+
+      - name: Update bug safely if needed
+        run: |
+          PATCH="["
+
+          if [[ "$TAGS" != *"Bugs"* ]]; then
+            PATCH+='{"op":"add","path":"/fields/System.Tags","value":"Bug"},'
+          fi
+
+          if [[ "$STATE" == "New" ]]; then
+            PATCH+='{"op":"add","path":"/fields/System.State","value":"To Fix"},'
+          fi
+
+          PATCH=${PATCH%,}
+          PATCH+="]"
+
+          if [[ "$PATCH" != "[]" ]]; then
+            curl \
+              --request PATCH \
+              --header "Content-Type: application/json-patch+json" \
+              --user ":${{ secrets.AZDO_PAT }}" \
+              --data "$PATCH" \
+              "https://dev.azure.com/abatacommerce/MyKKP/_apis/wit/workitems/${{ github.event.client_payload.workItemId }}?api-version=7.0"
+          else
+            echo "No update required"
+          fi
