@@ -1,0 +1,20 @@
+name: ADO Create Bug Webhook Automation
+
+on:
+  repository_dispatch:
+    types:
+      - ado-create-bug-webhook
+
+jobs:
+  update-bug:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Add Bugs tag and set State to "To Fix"
+        run: |
+          curl --request PATCH \
+               --header "Content-Type: application/json-patch+json" \
+               --user ":${{ secrets.AZDO_PAT }}" \
+               --data '[{"op":"add","path":"/fields/System.Tags","value":"Bugs"},
+                        {"op":"add","path":"/fields/System.State","value":"To Fix"}]' \
+               https://dev.azure.com/abatacommerce/MyKKP/_apis/wit/workitems/${{ github.event.client_payload.workItemId }}?api-version=7.0
