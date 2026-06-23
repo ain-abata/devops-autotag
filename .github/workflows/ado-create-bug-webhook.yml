@@ -16,7 +16,7 @@ jobs:
           RESPONSE=$(curl \
             --silent \
             --user ":${{ secrets.AZDO_PAT }}" \
-            "https://dev.azure.com/abatacommerce/MyKKP/_apis/wit/workitems/${{ github.event.client_payload.workItemId }}?api-version=7.0")
+            "https://dev.azure.com/abatacommerce/ABATA/_apis/wit/workitems/${{ github.event.client_payload.workItemId }}?api-version=7.0")
 
           echo "$RESPONSE" > bug.json
 
@@ -50,7 +50,7 @@ jobs:
               --header "Content-Type: application/json-patch+json" \
               --user ":${{ secrets.AZDO_PAT }}" \
               --data "$PATCH" \
-              "https://dev.azure.com/abatacommerce/MyKKP/_apis/wit/workitems/${{ github.event.client_payload.workItemId }}?api-version=7.0"
+              "https://dev.azure.com/abatacommerce/ABATA/_apis/wit/workitems/${{ github.event.client_payload.workItemId }}?api-version=7.0"
           else
             echo "No update required"
           fi
